@@ -9,9 +9,8 @@ import com.example.dailypractice2.data.entity.JournalEntryEntity
 /**
  * Created by Clarence E Moore on 2025-05-26.
  *
- * Description:
- *
- *
+ * Description: This is the Data Access Object (DAO) for the [JournalEntryEntity].
+ * It provides methods to interact with the `journal_entries` table in the database.
  */
 
 @Dao

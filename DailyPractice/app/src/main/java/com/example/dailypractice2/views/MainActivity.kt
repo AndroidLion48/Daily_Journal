@@ -43,27 +43,19 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/**
- * Created by Clarence E Moore on 2025-04-20.
- *
- * Description:
- * DailyPractice2 App v4.0.TEMP
- *
- * Content:
- * Has two activities:
- * 1. MainActivity
- * 2. JournalListActivity
- *
- * Practice:
- * Added an Activity and
- * a ViewModel for that Activity
- *
- *
- * Use to practice conversion and reverting to App v3.0.0 (Database Iteration)
- */
 
+/**
+ * The main activity of the application, responsible for displaying the UI to enter and save journal entries.
+ *
+ * This activity uses Jetpack Compose for building the UI and ViewModel for managing UI-related data.
+ */
 class MainActivity : ComponentActivity() {
 
+    /**
+     * Lazily initialized ViewModel for managing journal entries.
+     *
+     * The ViewModel is created using a [JournalViewModelFactory] and a [JournalRepositoriesImpl].
+     */
     private val journalViewModel: JournalViewModel by lazy {
         val repository = JournalRepositoriesImpl(journalDatabase = JournalDatabase.getInstance(this))
         val factory = JournalViewModelFactory(repository)

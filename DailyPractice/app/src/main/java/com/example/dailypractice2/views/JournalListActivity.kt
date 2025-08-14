@@ -31,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
@@ -47,22 +49,12 @@ import com.example.dailypractice2.views.viewModels.JournalListViewModel
 import com.example.dailypractice2.views.viewModels.JournalListViewModelFactory
 
 /**
- * Created by Clarence E Moore on 2025-05-26.
- *
- * Description:
- *
- * JournalListActivity
- *
- * Practice:
- * 1. Add another Activity:
- * Details page for a single journal entry
- * activated by clicking on a card.
- * 1. Accomplished using AnimatedVisibilityScope transitions.
- *
- *
- *
+ * Activity responsible for displaying a list of journal entries and navigating to their details.
+ * It utilizes Jetpack Compose for the UI and a ViewModel to manage journal data.
  */
+
 class JournalListActivity : ComponentActivity() {
+    /** Lazily initializes the [JournalListViewModel] using a [JournalListViewModelFactory]. */
     private val journalListViewModel: JournalListViewModel by lazy {
         val repository = JournalRepositoriesImpl(journalDatabase = JournalDatabase.getInstance(this))
         val factory = JournalListViewModelFactory(repository)
@@ -251,8 +243,30 @@ class JournalListActivity : ComponentActivity() {
                 Text(entry.title, fontSize = 18.sp, fontWeight = FontWeight.Companion.SemiBold)
                 Text(entry.date, fontSize = 14.sp, color = Color.Companion.Gray)
                 Spacer(modifier = Modifier.Companion.height(8.dp))
-                Text(entry.content, fontSize = 16.sp, fontWeight = FontWeight.Companion.SemiBold)
+                Text(
+                    text = entry.content,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Companion.SemiBold,
+                    maxLines = 3, // Display a maximum of 2 lines
+                    overflow = TextOverflow.Ellipsis // Add ellipsis (...) if the text overflows
+                )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun JournalEntryCardPreview() {
+    DailyPractice2Theme {
+        JournalListActivity().JournalEntryCard(
+            entry = JournalEntryModel(
+                title = "Sample Title",
+                content = "Mauris id pulvinar tellus, eget malesuada ante. Vivamus tellus massa, posuere at lacinia at, tincidunt non tellus. Proin lacinia felis eget mauris vehicula, vel condimentum felis pellentesque. Sed at dapibus ipsum. Nullam consectetur, ipsum dictum interdum pharetra, ipsum neque hendrerit ipsum, at hendrerit ante dui in dolor.",
+                date = "2025-05-27",
+                id = 1
+            ),
+            onItemClick = {}
+        )
     }
 }
