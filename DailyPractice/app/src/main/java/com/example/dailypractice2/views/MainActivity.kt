@@ -1,12 +1,12 @@
 package com.example.dailypractice2.views
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,8 +34,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.example.dailypractice2.data.JournalRepositoriesImpl
-import com.example.dailypractice2.data.database.JournalDatabase
+import com.example.dailypractice2.data.DailyJournalRepositoryImpl
+import com.example.dailypractice2.data.local.JournalDatabase
 import com.example.dailypractice2.views.theme.DailyPractice2Theme
 import com.example.dailypractice2.views.viewModels.JournalViewModel
 import com.example.dailypractice2.views.viewModels.JournalViewModelFactory
@@ -65,10 +65,14 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     private val journalViewModel: JournalViewModel by lazy {
-        val repository = JournalRepositoriesImpl(journalDatabase = JournalDatabase.getInstance(this))
+        val repository =
+            DailyJournalRepositoryImpl(journalDatabase = JournalDatabase.getInstance(this))
+
         val factory = JournalViewModelFactory(repository)
         ViewModelProvider(this, factory)[JournalViewModel::class.java]
     }
+
+    var currentScreen = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,10 +84,77 @@ class MainActivity : ComponentActivity() {
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 8.dp)
                 ) {
-                    EnterJournalEntry()
+                    // Composable goes here
+                    InitialJournalScreen()
                 }
             }
         }
+    }
+
+    @Composable
+    private fun InitialJournalScreen() {
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                modifier = Modifier,
+                textAlign = TextAlign.Center,
+                text = "MY DAILY JOURNAL APP",
+                fontSize = 24.sp,
+            )
+
+            ContentsScreen()
+
+            ButtonsScreen()
+        }
+    }
+
+    @Composable
+    fun ButtonsScreen() {
+        // Added a save button
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Button(
+                modifier = Modifier,
+                onClick = {
+                    currentScreen = 0
+                },
+            ) {
+                Text(text = "New Entry")
+            }
+
+            Button(
+                modifier = Modifier,
+                onClick = {
+                    currentScreen = 1
+                },
+            ) {
+                Text(text = "List")
+            }
+        }
+    }
+
+    @Composable
+    fun ContentsScreen() {
+        Column() {
+            if (currentScreen == 0) {
+                EnterJournalEntry()
+            } else if (currentScreen == 1) {
+                Text(text = "List")
+                JournalListScreen()
+            }
+        }
+    }
+
+    @Composable
+    fun JournalListScreen() {
+        
     }
 
     /**
@@ -117,7 +188,10 @@ class MainActivity : ComponentActivity() {
                 onValueChange = { title = it },
                 label = { Text("Title", fontWeight = FontWeight.Companion.Bold) },
                 maxLines = 2,
-                textStyle = TextStyle(color = Color.Companion.Magenta, fontWeight = FontWeight.Companion.SemiBold),
+                textStyle = TextStyle(
+                    color = Color.Companion.Magenta,
+                    fontWeight = FontWeight.Companion.SemiBold
+                ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Companion.Password,
                     imeAction = ImeAction.Companion.Next,
@@ -154,33 +228,6 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .padding(bottom = 8.dp)
             )
-
-            Button(
-                onClick = {
-                    if (title.isNotEmpty() && content.isNotEmpty()) {
-                        journalViewModel
-                            .addEntry(
-                                title = title,
-                                content = content,
-                            )
-                        title = ""
-                        content = ""
-
-                        val intent = Intent(this@MainActivity, JournalListActivity::class.java)
-                        startActivity(intent)
-
-                        Toast.makeText(this@MainActivity, "Journal Entry Saved", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "Please make entry in Title and Context Fields.", Toast.LENGTH_LONG).show()
-                    }
-                },
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.CenterHorizontally),
-            ) {
-                Text(
-                    text = "Save Entry"
-                )
-            }
         }
     }
 
@@ -196,5 +243,12 @@ class MainActivity : ComponentActivity() {
         DailyPractice2Theme {
             EnterJournalEntry()
         }
+    }
+
+    @Composable
+    @Preview
+    private fun InitialJournalScreenPreview() {
+        InitialJournalScreen()
+
     }
 }
