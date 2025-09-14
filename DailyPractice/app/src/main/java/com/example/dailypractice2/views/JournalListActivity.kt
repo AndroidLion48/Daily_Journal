@@ -13,8 +13,8 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,9 +25,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -66,45 +67,39 @@ class JournalListActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DailyPractice2Theme {
-                Surface(
-                    modifier = Modifier.Companion
-                        .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 8.dp)
-                ) {
 
-                    SharedTransitionLayout {
-                        val navController = rememberNavController()
+                SharedTransitionLayout {
+                    val navController = rememberNavController()
 
-                        NavHost(
-                            navController = navController,
-                            startDestination = "journal_list_screen",
-                        ) {
-                            composable("journal_list_screen") {
-                                JournalListScreen(
-                                    onItemClick = { selectedCardIndex ->
-                                        navController.navigate("details_screen/$selectedCardIndex")
-                                    },
-                                    animatedVisibilityScope = this,
-                                )
-                            }
+                    NavHost(
+                        navController = navController,
+                        startDestination = "journal_list_screen",
+                    ) {
+                        composable("journal_list_screen") {
+                            JournalListScreen(
+                                journalEntriesList = journalListViewModel.journalEntries,
+                                animatedVisibilityScope = this,
+                                onItemClick = { selectedCardIndex ->
+                                    navController.navigate("details_screen/$selectedCardIndex")
+                                },
+                            )
+                        }
 
-                            composable(
-                                route = "details_screen/{cardIndex}",
-                                arguments = listOf(navArgument("cardIndex") { type = NavType.IntType })
-                            ) { backStackEntry ->
+                        composable(
+                            route = "details_screen/{cardIndex}",
+                            arguments = listOf(navArgument("cardIndex") { type = NavType.IntType }),
+                        ) { backStackEntry ->
+                            val cardIndex = backStackEntry.arguments?.getInt("cardIndex")
+                            val selectedCard = cardIndex?.let { journalListViewModel.journalEntries[it] }
 
-                                val cardIndex = backStackEntry.arguments?.getInt("cardIndex")
-                                val selectedCard = cardIndex?.let { journalListViewModel.journalEntries[it] }
-
-                                DetailsScreen(
-                                    modifier = Modifier.Companion.fillMaxSize(),
-                                    selectedEntry = selectedCard ?: JournalEntryModel(title = "No Entry", content = "No Content", date = "No Date", id = 0),
-                                    onItemClick = {
-                                        navController.navigate("journal_list_screen")
-                                    },
-                                    animatedVisibilityScope = this,
-                                )
-                            }
+                            DetailsScreen(
+                                modifier = Modifier.Companion.fillMaxSize(),
+                                selectedEntry = selectedCard ?: JournalEntryModel(title = "No Entry", content = "No Content", date = "No Date", id = 0),
+                                onItemClick = {
+                                    navController.navigate("journal_list_screen")
+                                },
+                                animatedVisibilityScope = this,
+                            )
                         }
                     }
                 }
@@ -132,7 +127,8 @@ class JournalListActivity : ComponentActivity() {
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Companion.Bold,
                 modifier = Modifier
-                    .Companion.padding(bottom = 8.dp)
+                    .Companion
+                    .padding(bottom = 8.dp)
                     .sharedElement(
                         state = rememberSharedContentState(key = "journal_entry_${selectedEntry.title}"),
                         animatedVisibilityScope = animatedVisibilityScope,
@@ -146,20 +142,22 @@ class JournalListActivity : ComponentActivity() {
                 fontSize = 16.sp,
                 color = Color.Companion.Gray,
                 modifier = Modifier
-                    .Companion.padding(bottom = 16.dp)
+                    .Companion
+                    .padding(bottom = 16.dp)
                     .sharedElement(
-                    state = rememberSharedContentState(key = "journal_entry_${selectedEntry.date}"),
-                    animatedVisibilityScope = animatedVisibilityScope,
-                    boundsTransform = { _, _ ->
-                        tween(durationMillis = 1000)
-                    }
-                ),
+                        state = rememberSharedContentState(key = "journal_entry_${selectedEntry.date}"),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        boundsTransform = { _, _ ->
+                            tween(durationMillis = 1000)
+                        }
+                    ),
             )
             Text(
                 text = selectedEntry.content,
                 fontSize = 18.sp,
                 modifier = Modifier
-                    .Companion.padding(bottom = 16.dp)
+                    .Companion
+                    .padding(bottom = 16.dp)
                     .sharedElement(
                         state = rememberSharedContentState(key = "journal_entry_${selectedEntry.content}"),
                         animatedVisibilityScope = animatedVisibilityScope,
@@ -175,37 +173,27 @@ class JournalListActivity : ComponentActivity() {
     @Composable
     fun SharedTransitionScope.JournalListScreen(
         modifier: Modifier = Modifier,
-        onItemClick: (index: Int) -> Unit,
+        journalEntriesList: List<JournalEntryModel>,
         animatedVisibilityScope: AnimatedVisibilityScope,
+        onItemClick: (index: Int) -> Unit,
     ) {
-        val listOfEntries = journalListViewModel.journalEntries
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-        ) {
-            Row(
+        Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(innerPadding)
+                    .padding(top = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = {
-                        val intent = Intent(this@JournalListActivity, MainActivity::class.java)
-                        startActivity(intent)
-                    }
-                ) {
-                    Text("Add Entry")
-                }
-            }
-            Row(
-                modifier = Modifier
-            ) {
+                BtnAddEntryComponent()
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    items(listOfEntries.size) { index ->
+                    items(journalEntriesList.size) { index ->
                         JournalEntryCard(
                             Modifier
                                 .sharedElement(
@@ -215,7 +203,7 @@ class JournalListActivity : ComponentActivity() {
                                         tween(durationMillis = 1000)
                                     }
                                 ),
-                            listOfEntries[index],
+                            journalEntriesList[index],
                             onItemClick = { onItemClick(index) }
                         )
                         Spacer(modifier = Modifier.Companion.height(16.dp))
@@ -251,6 +239,20 @@ class JournalListActivity : ComponentActivity() {
                     overflow = TextOverflow.Ellipsis // Add ellipsis (...) if the text overflows
                 )
             }
+        }
+    }
+
+    @Composable
+    fun BtnAddEntryComponent(modifier: Modifier = Modifier) {
+        Button(
+            modifier = modifier
+                .padding(16.dp),
+            onClick = {
+                val intent = Intent(this@JournalListActivity, MainActivity::class.java)
+                startActivity(intent)
+            }
+        ) {
+            Text("Add Entry")
         }
     }
 }
