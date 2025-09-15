@@ -219,7 +219,11 @@ class JournalListActivity : ComponentActivity() {
      * @param entry The JournalEntryModel to display.
      */
     @Composable
-    fun JournalEntryCard(modifier: Modifier = Modifier, entry: JournalEntryModel, onItemClick: (index: Int) -> Unit) {
+    fun JournalEntryCard(
+        modifier: Modifier = Modifier,
+        entry: JournalEntryModel,
+        onItemClick: (index: Int) -> Unit
+    ) {
         Card(
             modifier = modifier
                 .fillMaxWidth()

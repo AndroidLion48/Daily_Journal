@@ -1,5 +1,6 @@
 package com.example.dailypractice2.views.viewModels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,8 @@ import com.example.dailypractice2.data.JournalRepositories
 import com.example.dailypractice2.data.entity.JournalEntryEntity
 import com.example.dailypractice2.models.JournalEntryModel
 import com.example.dailypractice2.models.toDomainModel
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -79,21 +82,61 @@ class JournalViewModel(private val repository: JournalRepositories) : ViewModel(
      * @param content The content of the new journal entry.
      */
     fun addEntry(title: String, content: String) {
-        //                  = is to return
-        //
         val currentDate = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault()).format(Date())
-
         viewModelScope.launch {
-            repository.upsertEntity(
-                entity = JournalEntryEntity(
+                val entity = JournalEntryEntity(
                     title = title,
                     entry = content,
                     entryDate = currentDate,
                     id = 0,
                 )
-            )
+            repository.upsertEntity(entity)
+            // Sync journal entry to Firebase Realtime Database
+            syncJournalEntryToFirebase(entity)
         }
     }
+
+    /**
+     * Syncs a single journal entry to Firebase Realtime Database.
+     *
+     * @param entity The journal entry entity to be synced.
+     */
+    private fun syncJournalEntryToFirebase(entity: JournalEntryEntity){
+
+        // Firebase Realtime Database references
+        val database = Firebase.database
+        val journalRef = database.getReference("journal_entries")
+        val entryMap = mapOf(
+            "title" to entity.title,
+            "content" to entity.entry,
+            "date" to entity.entryDate,
+            "timestamp" to System.currentTimeMillis(),
+        )
+
+        journalRef.push().setValue(entryMap)
+            .addOnSuccessListener {
+                Log.d("Firebase", "Journal entry synced to Firebase successfully")
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Firebase", "Failed to sync journal entry to Firebase", exception)
+            }
+    }
+
+    /**
+     * Syncs all journal entries from the local repository to Firebase.
+     *
+     * This function retrieves all entries from the local repository and
+     * uploads each one to Firebase.
+     */
+    fun syncAllJournalEntriesToFirebase(){
+        viewModelScope.launch {
+            val allEntities = repository.getAllEntities()
+            allEntities.forEach { entity ->
+                syncJournalEntryToFirebase(entity)
+            }
+        }
+    }
+
     /**
      * Clears all journal entries from the repository.
      * (Currently, this function only clears the local list and does not interact with the repository)
