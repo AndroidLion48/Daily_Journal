@@ -239,7 +239,7 @@ class JournalListActivity : ComponentActivity() {
                     text = entry.content,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Companion.SemiBold,
-                    maxLines = 3, // Display a maximum of 2 lines
+                    maxLines = 3, // Display a maximum of 3 lines
                     overflow = TextOverflow.Ellipsis // Add ellipsis (...) if the text overflows
                 )
             }
