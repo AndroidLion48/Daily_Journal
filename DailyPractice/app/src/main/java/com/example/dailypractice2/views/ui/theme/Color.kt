@@ -1,4 +1,4 @@
-package com.example.dailypractice2.views.theme
+package com.example.dailypractice2.views.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
